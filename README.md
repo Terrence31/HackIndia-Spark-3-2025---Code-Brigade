@@ -1,7 +1,7 @@
 # HackIndia-Hackathon
 Hackathon related stuff and code here. I'll change repo name later. 
 
-Project: AI-Based Document Search & Retrieval Assistant
+###Project: AI-Based Document Search & Retrieval Assistant
 
 Overview
 Employees often spend valuable time searching for the right documents, navigating through complex file structures, and skimming lengthy reports. Traditional search methods rely on exact keywords, making it difficult to find relevant information quickly. This inefficiency leads to frustration, productivity loss, and delayed decision-making.
