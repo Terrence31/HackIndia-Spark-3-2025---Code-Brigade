@@ -7,6 +7,7 @@ Overview
 Employees often spend valuable time searching for the right documents, navigating through complex file structures, and skimming lengthy reports. Traditional search methods rely on exact keywords, making it difficult to find relevant information quickly. This inefficiency leads to frustration, productivity loss, and delayed decision-making.
 
 Challenge
+
 Build an AI-powered Document Search & Retrieval Assistant that can:
 
 - Understand natural language queries and retrieve the most relevant documents.
