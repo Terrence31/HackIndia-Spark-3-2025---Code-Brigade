@@ -8,10 +8,6 @@ from ragchat.app import ragchat_pipeline, response
 app = Flask(__name__)
 CORS(app)
 
-UPLOAD_FOLDER = "uploaded_docs"
-app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
 ragchat_chain = ragchat_pipeline()
 
 
