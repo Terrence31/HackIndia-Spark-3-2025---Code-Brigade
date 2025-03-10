@@ -12,12 +12,15 @@ from langchain_community.document_loaders import PyPDFLoader, DirectoryLoader, D
 from langchain_text_splitters import RecursiveCharacterTextSplitter 
 from langchain_community.vectorstores import Chroma
 from langchain.chains import RetrievalQA 
-# from langchain.memory import ConversationBufferMemory 
+from langchain.memory import ConversationBufferMemory 
 from pypdf import PdfReader
 import sys
 from unicodedata import category
 
-# memory = ConversationBufferMemory()
+memory = ConversationBufferMemory(memory_key="chat_history",
+        return_messages=True,
+        input_key="query",  
+        output_key="result")
 api_key = 'sApb7nP6OfEYkQHNUpqprz5Srck5c7ZOtETachC0'
 model = ChatCohere(cohere_api_key=api_key, model_name='c4ai-aya-expanse-8b', temperature=0.5)
 embeddings = CohereEmbeddings(cohere_api_key=api_key, model='embed-multilingual-v2.0')
@@ -53,6 +56,7 @@ def load_and_process(path):
                 #loader = CSVLoader(file_path, csv_args={"delimiter": ",", "quotechar": '"'})
             elif file_path.endswith(".txt") or file_path.endswith(".md"):
                 loader = TextLoader(file_path,encoding="utf-8")
+                # loader = DirectoryLoader("./new_articles/", glob="./*.txt",   loader_cls=TextLoader)
             else:
                 print(f"Skipping {file_path} - Unsupported file format.")
                 continue
@@ -102,7 +106,8 @@ def ragchat(vector_store):
             search_kwargs={'k': 1}
         ),
         return_source_documents=True,
-        chain_type_kwargs={'prompt': QA_PROMPT},
+        chain_type_kwargs={'prompt': QA_PROMPT, 'verbose': True},
+        memory=memory 
     )
     return qa_chain
 
@@ -133,7 +138,7 @@ def encode_image(image_path):
 
 
 
-file = "C:/Users/Samuel Mesquita/Downloads/PROJECT_REPORT.docx"
+file = "C:/Users/Samuel Mesquita/Downloads/CV-Bu6JGepv.pdf"
 ragchat_chain = ragchat_pipeline(file)
-new_response = response("What does the file say?", ragchat_chain)
+new_response = response("What did I ask previously based on the given doc?", ragchat_chain)
 print(new_response)
