@@ -1,1 +1,10 @@
-
+Flask==3.0.3
+Flask-Cors==4.0.1
+langchain==0.2.14
+langchain-cohere==0.1.9
+langchain-community==0.2.12
+langchain-core==0.2.43
+Flask-SocketIO==5.4.1
+pypdf==5.1.0
+chromadb==0.5.23
+mistralai==1.5.0

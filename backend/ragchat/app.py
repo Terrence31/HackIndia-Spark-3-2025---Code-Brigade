@@ -1,5 +1,6 @@
 import os 
 import json
+import base64
 import numpy as np
 from datetime import datetime 
 from dotenv import load_dotenv 
@@ -122,3 +123,13 @@ def ragchat_pipeline(document_sources):
     vector_store = vectordb_info(processed_docs)
     ragchat_chain = ragchat(vector_store)
     return ragchat_chain
+
+def encode_image(image_path):
+    """Encode the image to base64."""
+    try:
+        with open(image_path, "rb") as image_file:
+            return base64.b64encode(image_file.read()).decode('utf-8')
+    except FileNotFoundError:
+        return None
+    except Exception as e:
+        return None
