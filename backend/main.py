@@ -1,4 +1,4 @@
-import flask as Flask
+from flask import Flask
 from flask_cors import CORS
 from flask import request, jsonify
 import json
@@ -8,7 +8,8 @@ from ragchat.app import ragchat_pipeline, response
 app = Flask(__name__)
 CORS(app)
 
-ragchat_chain = ragchat_pipeline()
+file = "C:/Users/Samuel Mesquita/Downloads/CV-Bu6JGepv.pdf"
+ragchat_chain = ragchat_pipeline(file)
 
 
 @app.route('/ragchat', methods=['POST'])
@@ -22,4 +23,8 @@ def query():
         return jsonify({'answer': answer})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+
+if __name__ == '__main__':
+    app.run(debug=True, port=8888)
     

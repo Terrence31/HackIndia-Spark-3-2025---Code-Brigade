@@ -7,10 +7,10 @@ from langchain_cohere import ChatCohere, CohereEmbeddings
 # from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
 from langchain_core.prompts import PromptTemplate 
 from langchain.chains.question_answering import load_qa_chain 
-from langchain_community.document_loaders import PyPDFLoader, DirectoryLoader, Docx2txtLoader, TextLoader
+from langchain_community.document_loaders import PyPDFLoader, DirectoryLoader, Docx2txtLoader, TextLoader, CSVLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter 
 from langchain_community.vectorstores import Chroma
-from docx import Document
+# from docx import Document
 from langchain.chains import RetrievalQA 
 from langchain.memory import ConversationBufferMemory 
 from pypdf import PdfReader
@@ -19,26 +19,52 @@ from unicodedata import category
 
 
 api_key = 'sApb7nP6OfEYkQHNUpqprz5Srck5c7ZOtETachC0'
-model = ChatCohere(api_key=api_key, model_name='c4ai-aya-expanse-8b', temperature=0.5)
-embeddings = CohereEmbeddings(api_key=api_key, model_name='embed-multilingual-v3.0')
+model = ChatCohere(cohere_api_key=api_key, model_name='c4ai-aya-expanse-8b', temperature=0.5)
+embeddings = CohereEmbeddings(cohere_api_key=api_key, model='embed-multilingual-v2.0')
 
-def load_and_process(doc_source):
-    all_docs = []
+def load_and_process(path):
+    """
+    Loads documents from a directory or a single file.
+    """
     documents = []
-    if doc_source.endswith(".doc") or doc_source.endswith(".docx"):
-        temp = DirectoryLoader(doc_source, glob='*.docx', loader_cls=Docx2txtLoader)
-        # temp = Docx2txtLoader(doc_source)
-        all_docs.append(temp)
-    if doc_source.endswith(".pdf"):
-        # temp = PyPDFLoader(doc_source)
-        temp = DirectoryLoader(doc_source, glob='*.pdf', loader_cls=PyPDFLoader)
-        all_docs.append(temp)
-    if doc_source.endswith(".txt") or doc_source.endswith(".md"):
-        # temp = TextLoader(doc_source)
-        temp = DirectoryLoader(doc_source, glob='*.txt', loader_cls=TextLoader)
-        all_docs.append(temp)
-    for docs in all_docs:
-        documents = docs.load()
+
+    # Check if the path is a file or directory
+    if os.path.isfile(path):  # If a single file is given
+        files = [path]
+    elif os.path.isdir(path):  # If a directory is given
+        files = [os.path.join(path, file) for file in os.listdir(path)]
+    else:
+        raise ValueError(f"Invalid file or directory path: {path}")
+
+    # Load each file
+    for file_path in files:
+        if not os.path.isfile(file_path):
+            print(f"Skipping {file_path} - Not a valid file.")
+            continue
+
+        try:
+            if file_path.endswith(".doc") or file_path.endswith(".docx"):
+                loader = Docx2txtLoader(file_path)
+            elif file_path.endswith(".pdf"):
+                loader = PyPDFLoader(file_path)
+                #loader = DirectoryLoader(file_path,glob="*.pdf",show_progress=True,loader_cls=PyPDFLoader)
+            elif file_path.endswith(".csv"):
+                #loader = CSVLoader(file_path, csv_args={"delimiter": ",", "quotechar": '"'})
+                loader = CSVLoader(file_path)
+            elif file_path.endswith(".txt") or file_path.endswith(".md"):
+                loader = TextLoader(file_path,encoding="utf-8")
+            else:
+                print(f"Skipping {file_path} - Unsupported file format.")
+                continue
+
+            documents.extend(loader.load())  # Extract and store content
+
+        except Exception as e:
+            print(f"Error loading {file_path}: {str(e)}")  # Catch errors
+
+    if not documents:
+        raise ValueError("No valid documents found!")
+
     return documents
 
 def split_text(documents):
@@ -50,18 +76,29 @@ def split_text(documents):
 def vectordb_info(docs):
     vector_store = Chroma.from_documents(
         docs,
-        embeddings=embeddings,
+        embedding=embeddings,
         persist_directory='vector_store',
     )
     vector_store.persist()
     return vector_store
 
 def ragchat(vector_store):
-    template = """ """
-    QA_PROMPT = PromptTemplate(template)
+    template = """You are an AI-powered Document Search Assistant. Your goal is to assist the user by answering their query based on the provided document context.  
+
+1. Carefully analyze the user’s query and extract relevant information from the provided document.  
+2. If the answer is present in the document, provide a **clear, concise, and informative response**.  
+3. Include the **document heading** in your response to help the user identify the source of information.  
+4. If the document does not contain a relevant answer, politely respond with:  
+   *"I'm sorry, but I couldn't find the information in this document. You may refer to other related documents for more details."*  
+5. If similar documents exist, suggest them to the user.  
+{context}
+        Question: {question}
+        Helpful Answer:
+"""
+    QA_PROMPT = PromptTemplate.from_template(template)
     qa_chain = RetrievalQA.from_chain_type(
         llm = model,
-        chain_type='retrieval',
+        chain_type='stuff',
         retriever = vector_store.as_retriever(
             search_kwargs={'k': 2}
         ),
