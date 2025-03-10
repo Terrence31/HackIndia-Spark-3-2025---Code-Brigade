@@ -4,9 +4,7 @@ import os
 import sys
 from io import BytesIO  
 
-# Import functions from app.py
-sys.path.append(os.path.join(os.path.dirname(__file__), "summarise"))
-from app import summarize_document, translate_text, load_document
+from summarise.app import summarize_document, translate_text, load_document
 
 app = Flask(__name__)
 CORS(app)

@@ -102,13 +102,3 @@ def translate_text(text, source_lang, target_lang):
     )
 
     return response.generations[0].text.strip()
-
-
-# docs = load_document("C:/Users/TERREL BRAGANCA/Desktop/HackIndia/Files")  # Replace with your directory path or file path
-
-# summary = summarize_document(docs) #Summary of the documents
-# print("Summary:\n", summary,"\n\n")
-
-
-# translated_text = translate_text(summary, "English", "Spanish")
-# print("Translated Text:\n", translated_text) #Translated text
