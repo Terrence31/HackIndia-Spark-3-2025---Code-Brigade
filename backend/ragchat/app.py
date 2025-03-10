@@ -18,7 +18,7 @@ from pypdf import PdfReader
 import sys
 from unicodedata import category
 
-
+memory = ConversationBufferMemory( memory_key='chat_history', return_messages=True)
 api_key = 'sApb7nP6OfEYkQHNUpqprz5Srck5c7ZOtETachC0'
 model = ChatCohere(cohere_api_key=api_key, model_name='c4ai-aya-expanse-8b', temperature=0.5)
 embeddings = CohereEmbeddings(cohere_api_key=api_key, model='embed-multilingual-v2.0')
@@ -78,9 +78,8 @@ def vectordb_info(docs):
     vector_store = Chroma.from_documents(
         docs,
         embedding=embeddings,
-        persist_directory='vector_store',
+        persist_directory='./vector_store',
     )
-    vector_store.persist()
     return vector_store
 
 def ragchat(vector_store):
@@ -92,7 +91,7 @@ def ragchat(vector_store):
 4. If the document does not contain a relevant answer, politely respond with:  
    *"I'm sorry, but I couldn't find the information in this document. You may refer to other related documents for more details."*  
 5. If similar documents exist, suggest them to the user.  
-{context}
+        {context}
         Question: {question}
         Helpful Answer:
 """
@@ -101,15 +100,14 @@ def ragchat(vector_store):
         llm = model,
         chain_type='stuff',
         retriever = vector_store.as_retriever(
-            search_kwargs={'k': 2}
+            search_kwargs={'k': 1}
         ),
         return_source_documents=True,
-        chain_type_kwargs={'prompt': QA_PROMPT},
-        memory=ConversationBufferMemory(memory_key='qa_chain_memory', return_messages=True)
+        chain_type_kwargs={'prompt': QA_PROMPT, 'memory': memory},
     )
     return qa_chain
 
-def response(qa_chain, question):
+def response(question, qa_chain):
     try:
         result = qa_chain({'query': question})
         response = result['response']
@@ -133,3 +131,10 @@ def encode_image(image_path):
         return None
     except Exception as e:
         return None
+
+
+
+file = "C:/Users/Samuel Mesquita/Downloads/CV-Bu6JGepv.pdf"
+ragchat_chain = ragchat_pipeline(file)
+new_response = response("Who is Siddant?", ragchat_chain)
+print(new_response)
