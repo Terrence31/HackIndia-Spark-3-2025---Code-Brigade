@@ -136,7 +136,7 @@ def encode_image(image_path):
         return None
 
 
-
+# Testing this file for functionality
 file = "C:/Users/Samuel Mesquita/Downloads/CV-Bu6JGepv.pdf"
 ragchat_chain = ragchat_pipeline(file)
 new_response = response("What did I ask previously based on the given doc?", ragchat_chain)
