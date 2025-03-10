@@ -11,14 +11,13 @@ from langchain.chains.question_answering import load_qa_chain
 from langchain_community.document_loaders import PyPDFLoader, DirectoryLoader, Docx2txtLoader, TextLoader, CSVLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter 
 from langchain_community.vectorstores import Chroma
-# from docx import Document
 from langchain.chains import RetrievalQA 
-from langchain.memory import ConversationBufferMemory 
+# from langchain.memory import ConversationBufferMemory 
 from pypdf import PdfReader
 import sys
 from unicodedata import category
 
-memory = ConversationBufferMemory( memory_key='chat_history', return_messages=True)
+# memory = ConversationBufferMemory()
 api_key = 'sApb7nP6OfEYkQHNUpqprz5Srck5c7ZOtETachC0'
 model = ChatCohere(cohere_api_key=api_key, model_name='c4ai-aya-expanse-8b', temperature=0.5)
 embeddings = CohereEmbeddings(cohere_api_key=api_key, model='embed-multilingual-v2.0')
@@ -50,8 +49,8 @@ def load_and_process(path):
                 loader = PyPDFLoader(file_path)
                 #loader = DirectoryLoader(file_path,glob="*.pdf",show_progress=True,loader_cls=PyPDFLoader)
             elif file_path.endswith(".csv"):
-                #loader = CSVLoader(file_path, csv_args={"delimiter": ",", "quotechar": '"'})
                 loader = CSVLoader(file_path)
+                #loader = CSVLoader(file_path, csv_args={"delimiter": ",", "quotechar": '"'})
             elif file_path.endswith(".txt") or file_path.endswith(".md"):
                 loader = TextLoader(file_path,encoding="utf-8")
             else:
@@ -103,14 +102,14 @@ def ragchat(vector_store):
             search_kwargs={'k': 1}
         ),
         return_source_documents=True,
-        chain_type_kwargs={'prompt': QA_PROMPT, 'memory': memory},
+        chain_type_kwargs={'prompt': QA_PROMPT},
     )
     return qa_chain
 
 def response(question, qa_chain):
     try:
         result = qa_chain({'query': question})
-        response = result['response']
+        response = result['result']
         return response
     except Exception as e:
         return f"An Error has occured: {str(e)}"
@@ -134,7 +133,7 @@ def encode_image(image_path):
 
 
 
-file = "C:/Users/Samuel Mesquita/Downloads/CV-Bu6JGepv.pdf"
+file = "C:/Users/Samuel Mesquita/Downloads/PROJECT_REPORT.docx"
 ragchat_chain = ragchat_pipeline(file)
-new_response = response("Who is Siddant?", ragchat_chain)
+new_response = response("What does the file say?", ragchat_chain)
 print(new_response)
