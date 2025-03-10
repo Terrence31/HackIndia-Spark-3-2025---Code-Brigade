@@ -11,9 +11,13 @@ Imagine a workplace where finding the right document is effortless—no more end
 Build an AI-powered Document Search & Retrieval Assistant that can:
 
 💡Understand natural language queries and retrieve the most relevant documents.
+
 🔍Instantly summarize lengthy documents to provide key insights.
+
 📄Suggest related documents or topics for further research and exploration.
+
 📒Support multiple file types (PDFs, Word docs, presentations, etc.).
+
 🔍Enhance search accuracy using AI-driven context analysis.
 
 ### Key Features
