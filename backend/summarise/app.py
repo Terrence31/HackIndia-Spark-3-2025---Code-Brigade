@@ -2,6 +2,8 @@ from langchain_community.document_loaders import PyPDFLoader, WebBaseLoader, Dir
 import os
 import cohere
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+import base64
+from mistralai import Mistral
 
 
 #Function to split text into chunks
@@ -49,8 +51,8 @@ def load_document(path):
                 loader = TextLoader(file_path,encoding="utf-8")
             #write code in the else such that it calls the ocr function and the output of the ocr file needs to be sent to the summerizer
             else:
-                print(f"Skipping {file_path} - Unsupported file format.")
-                continue
+                result=perform_ocr(path)
+                return co.summarize(text=str(result),length="short").summary
 
             documents.extend(loader.load())  # Extract and store content
 
@@ -102,3 +104,45 @@ def translate_text(text, source_lang, target_lang):
     )
 
     return response.generations[0].text.strip()
+
+
+client = Mistral(api_key="JeGQPmkVkRdzDCvN4NbKxFGp77OrqKJg")
+
+def encode_image(image_path):
+    """Encode the image to base64."""
+    try:
+        with open(image_path, "rb") as image_file:
+            return base64.b64encode(image_file.read()).decode('utf-8')
+    except FileNotFoundError:
+        print("Error: File not found.")
+        return None
+    except Exception as e:
+        print(f"Error encoding image: {e}")
+        return None
+
+
+def perform_ocr(image_path):
+    """Process OCR using Mistral API."""
+    if not image_path or not os.path.exists(image_path):
+        print("Error: Invalid or missing image path.")
+        return None
+
+    base64_image = encode_image(image_path)
+    if not base64_image:
+        print("Error: Failed to encode image.")
+        return None
+
+    try:
+        ocr_response = client.ocr.process(
+            model="mistral-ocr-latest",
+            document={
+                "type": "image_url",
+                "image_url": f"data:image/jpeg;base64,{base64_image}"
+            }
+        )
+        print("OCR processed successfully!")
+        return ocr_response
+    except Exception as e:
+        print(f"Error: OCR processing failed: {e}")
+        return None
+    

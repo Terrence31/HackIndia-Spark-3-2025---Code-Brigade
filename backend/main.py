@@ -7,6 +7,7 @@ from io import BytesIO
 from flask import request, jsonify
 import json
 from mistralai import Mistral
+import imghdr
 
 from ragchat.app import ragchat_pipeline, response, encode_image
 from summarise.app import summarize_document, translate_text, load_document
@@ -25,11 +26,16 @@ def summarize():
         if file_path:
             file_content = file_path.read()
             temp_file = BytesIO(file_content)  
-            summary = summarize_document(load_document(temp_file))    
+            if imghdr.what(None, file_content):  
+                # If it's an image, only call load_document
+                summary = load_document(temp_file)
+            else:
+                # If it's not an image, call both load_document and summarize_document
+                summary = summarize_document(load_document(temp_file))    
 
         return jsonify({"summary": summary})
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": str(e)}), 500     
 
 
 # Route to translate summarized text
